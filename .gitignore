@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+env/
+chroma_db/
+*.pdf
+.DS_Store
+.idea/
+.vscode/
+*.egg-info/
+dist/
+build/
