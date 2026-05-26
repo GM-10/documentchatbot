@@ -1,0 +1,11 @@
+services:
+  qa-bot:
+    build: .
+    container_name: qa-bot
+    ports:
+      - "7861:7861"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    restart: always

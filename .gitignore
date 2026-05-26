@@ -5,8 +5,10 @@ __pycache__/
 venv/
 .venv/
 env/
+data/vector_db/
 chroma_db/
 *.pdf
+.claude/
 .DS_Store
 .idea/
 .vscode/

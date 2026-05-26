@@ -1,138 +1,87 @@
-# RAG PDF Chatbot
+# 🤖 AI Knowledge Assistant: Professional RAG PDF Chatbot
 
-A **Retrieval-Augmented Generation (RAG)** chatbot that lets you upload any PDF and ask questions — answers are grounded in the document, not hallucinated.
-
-Built with LangChain, ChromaDB, HuggingFace embeddings, and Gradio. Supports both **Ollama (free, local)** and **OpenAI** as LLM backends.
+An enterprise-grade **Retrieval-Augmented Generation (RAG)** system that transforms static PDF libraries into an interactive, verifiable knowledge base. This project demonstrates a complete AI pipeline from raw document ingestion (including OCR) to high-precision hybrid retrieval and hallucination-resistant generation.
 
 ---
 
-## Architecture
+## 🚀 Key Technical Achievements
 
-```
-PDF Upload
-    │
-    ▼
-PyPDFLoader  ──►  RecursiveCharacterTextSplitter (chunk_size=1000)
-                            │
-                            ▼
-              HuggingFace Embeddings (all-MiniLM-L6-v2)
-                            │
-                            ▼
-                       ChromaDB (in-memory vector store)
-                            │
-              ┌─────────────┘
-              │   User Query
-              │       │
-              ▼       ▼
-        Similarity Search  ──►  Top-4 chunks
-                                    │
-                                    ▼
-                            LLM (Ollama / OpenAI)
-                                    │
-                                    ▼
-                               Final Answer
-```
+### 1. Hybrid Search Architecture
+Unlike basic RAG systems that rely solely on semantic vectors, this system implements a **Hybrid Retrieval** strategy using an `EnsembleRetriever`:
+- **Dense Retrieval (Semantic)**: Uses HuggingFace embeddings to capture conceptual meaning and context.
+- **Sparse Retrieval (BM25)**: Uses keyword-based matching to ensure exact terms, technical IDs, and rare names are never missed.
+- **RRF (Reciprocal Rank Fusion)**: Intelligently merges both results to provide the most relevant context to the LLM.
+
+### 2. Selective OCR Pipeline
+To handle real-world documents, the system includes a robust ingestion pipeline:
+- **Intelligent Detection**: Automatically detects "scanned" pages (empty or low-text PDF pages).
+- **OCR Integration**: Uses `pytesseract` and `pdf2image` to perform Optical Character Recognition on scanned content, ensuring no data is lost during indexing.
+
+### 3. Hallucination Control & Citation Verification
+To ensure trust and accuracy, I implemented a custom **Citation Verification Engine**:
+- **Strict Formatting**: The LLM is constrained to cite sources as `[source: filename.pdf | page: X]`.
+- **Backend Validation**: Every response is post-processed to verify that the cited page and file actually exist in the retrieved context.
+- **Transparency**: The UI explicitly notifies the user if citations are verified or if potential hallucinations were detected.
+
+### 4. Enterprise-Grade UX
+- **Side-by-Side PDF Viewer**: Integrated a real-time document preview so users can visually verify AI claims.
+- **Conversational Memory**: Implemented a history-aware retriever that can rephrase user queries based on the chat context.
+- **Multi-Doc Synthesis**: Capability to chat across the entire library or target a specific document.
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-| Component     | Tool                                     |
-|---------------|------------------------------------------|
-| Framework     | LangChain                                |
-| LLM           | Ollama `llama3.2` (local) / OpenAI GPT  |
-| Embeddings    | HuggingFace `all-MiniLM-L6-v2` (free)   |
-| Vector Store  | ChromaDB (in-memory)                     |
-| PDF Loader    | PyPDF via LangChain                      |
-| UI            | Gradio                                   |
+| Component | Technology |
+| :--- | :--- |
+| **LLM** | Ollama (Llama 3.2) / OpenAI (GPT-4o) |
+| **Orchestration** | LangChain |
+| **Vector Store** | ChromaDB |
+| **Embeddings** | HuggingFace `all-MiniLM-L6-v2` |
+| **OCR** | Tesseract OCR, Poppler |
+| **Frontend** | Gradio |
+| **Deployment** | Docker, Docker Compose |
 
 ---
 
-## Quickstart
+## 📦 Installation & Setup
 
-### 1. Clone and install
+### Prerequisites
+- Docker installed (Recommended)
+- Ollama installed and running (if using local LLM)
 
+### Quick Start (Docker)
 ```bash
-git clone https://github.com/YOUR_USERNAME/rag-pdf-chatbot
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/rag-pdf-chatbot.git
 cd rag-pdf-chatbot
-pip install -r requirements.txt
-```
 
-### 2. Set up your LLM
-
-**Option A — Ollama (free, recommended)**
-
-```bash
-# Install Ollama from https://ollama.com
-ollama pull llama3.2
-ollama serve
-```
-
-**Option B — OpenAI**
-
-```bash
+# Setup environment variables
 cp .env.example .env
-# Open .env and set:
-#   LLM_BACKEND=openai
-#   OPENAI_API_KEY=sk-...
+
+# Launch with Docker Compose
+docker-compose up --build
 ```
-
-### 3. Run
-
-```bash
-python app.py
-```
-
-Open [http://localhost:7860](http://localhost:7860) in your browser.
+Access the app at `http://localhost:7861`
 
 ---
 
-## How It Works
-
-1. **Load** — The PDF is loaded page by page using PyPDFLoader.
-2. **Chunk** — Text is split into 1000-character chunks with 100-character overlap to preserve context at boundaries.
-3. **Embed** — Each chunk is converted to a vector using a free HuggingFace sentence-transformer model.
-4. **Store** — Vectors are stored in an in-memory ChromaDB collection.
-5. **Retrieve** — At query time, the top 4 most semantically similar chunks are retrieved.
-6. **Generate** — The LLM answers using only the retrieved chunks, keeping answers grounded in the document.
-
----
-
-## Configuration
-
-All settings are controlled via environment variables (see `.env.example`):
-
-| Variable       | Default              | Description                        |
-|----------------|----------------------|------------------------------------|
-| `LLM_BACKEND`  | `ollama`             | `ollama` or `openai`               |
-| `OLLAMA_MODEL` | `llama3.2`           | Any model available via Ollama     |
-| `OPENAI_MODEL` | `gpt-3.5-turbo`      | OpenAI model name                  |
-| `EMBED_MODEL`  | `all-MiniLM-L6-v2`   | HuggingFace embedding model        |
-
----
-
-## Example Questions to Try
-
-- *"What is the main topic of this document?"*
-- *"Summarize the key findings in bullet points."*
-- *"What methodology was used?"*
-- *"What does the author conclude about X?"*
-
----
-
-## Project Structure
-
+## 🏗️ Project Structure
 ```
 rag-pdf-chatbot/
-├── app.py              # Main application (RAG pipeline + Gradio UI)
-├── requirements.txt    # Python dependencies
-├── .env.example        # Environment variable template
-├── .gitignore
-└── README.md
+├── App.py              # Main RAG pipeline & Gradio UI
+├── config.py           # Centralized environment & app configuration
+├── storage_manager.py  # Metadata and file system management
+├── Dockerfile           # Containerization logic
+├── docker-compose.yml  # Deployment orchestration
+├── data/               # Persistent storage for PDFs and Vector DB
+└── requirements.txt    # Python dependencies
 ```
 
 ---
 
-## License
-
-MIT
+## 🎓 Learning Outcomes
+This project solved several critical RAG challenges:
+- **The "Exact Match" Problem**: Solved by implementing Hybrid Search.
+- **The "Scanned PDF" Problem**: Solved by Selective OCR.
+- **The "Hallucination" Problem**: Solved by a custom Metadata Verification layer.

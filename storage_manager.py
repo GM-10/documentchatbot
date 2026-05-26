@@ -26,12 +26,13 @@ class StorageManager:
         with open(self.metadata_path, 'r') as f:
             return json.load(f)
 
-    def add_doc(self, name, collection_id):
+    def add_doc(self, name, collection_id, page_count=0):
         docs = self.get_all_docs()
         docs.append({
-            "name": name, 
-            "id": collection_id, 
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M")
+            "name": name,
+            "id": collection_id,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "pages": page_count
         })
         self._save_metadata(docs)
 
